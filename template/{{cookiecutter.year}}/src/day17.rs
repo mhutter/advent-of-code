@@ -12,11 +12,11 @@ mod tests {
 
     #[test]
     fn part1_examples() {
-        assert_eq!(0, day17p1(&[]))
+        assert_eq!(0, day17p1(&[]));
     }
 
     #[test]
     fn part2_examples() {
-        assert_eq!(0, day17p2(&[]))
+        assert_eq!(0, day17p2(&[]));
     }
 }
