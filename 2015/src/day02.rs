@@ -1,3 +1,5 @@
+use std::str::FromStr;
+
 pub fn day02p1(input: &str) -> i32 {
     input.lines().map(paper_for).sum()
 }
@@ -6,17 +8,24 @@ pub fn day02p2(input: &str) -> i32 {
     input.lines().map(ribbon_for).sum()
 }
 
-fn sizes_from(dimensions: &str) -> (i32, i32, i32) {
-    let mut parts = dimensions.split("x");
-    let l = parts.next().unwrap().parse::<i32>().unwrap();
-    let w = parts.next().unwrap().parse::<i32>().unwrap();
-    let h = parts.next().unwrap().parse::<i32>().unwrap();
+struct Sizes(i32, i32, i32);
 
-    (l, w, h)
+impl FromStr for Sizes {
+    type Err = std::num::ParseIntError;
+
+    /// Parse a string of the form "1x2x3" into an instance of 'Sizes'
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let mut parts = s.split('x');
+        let l = parts.next().unwrap().parse()?;
+        let w = parts.next().unwrap().parse()?;
+        let h = parts.next().unwrap().parse()?;
+
+        Ok(Self(l, w, h))
+    }
 }
 
 fn paper_for(dimensions: &str) -> i32 {
-    let (l, w, h) = sizes_from(dimensions);
+    let Sizes(l, w, h) = dimensions.parse().unwrap();
     let s = [l * w, l * h, w * h];
 
     let total: i32 = s.iter().sum();
@@ -26,7 +35,7 @@ fn paper_for(dimensions: &str) -> i32 {
 }
 
 fn ribbon_for(dimensions: &str) -> i32 {
-    let (l, w, h) = sizes_from(dimensions);
+    let Sizes(l, w, h) = dimensions.parse().unwrap();
     let mut s = [l, w, h];
     s.sort();
 
