@@ -12,12 +12,10 @@ pub fn day01p1(input: &[char]) -> i64 {
     floor
 }
 
-pub fn day01p2(input: &[char]) -> i64 {
+pub fn day01p2(input: &[char]) -> usize {
     let mut floor = 0;
-    let mut pos = 0;
 
-    for c in input {
-        pos += 1;
+    for (pos, c) in input.iter().enumerate() {
         match c {
             '(' => floor += 1,
             ')' => floor -= 1,
@@ -25,7 +23,7 @@ pub fn day01p2(input: &[char]) -> i64 {
         }
 
         if floor < 0 {
-            return pos;
+            return pos + 1;
         }
     }
 
