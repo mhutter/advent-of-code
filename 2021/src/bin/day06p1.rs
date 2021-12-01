@@ -1,4 +1,6 @@
-use advent_of_code_2021::{day06::day06p1, generate};
+use common::generate;
+
+use advent_of_code_2021::day06::day06p1;
 
 fn main() {
     let i = generate::ints(include_str!("../../input/day06.txt"));
