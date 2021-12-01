@@ -7,7 +7,7 @@
 
 /// assert_eq!(vec![0,2,3,-4], ints("0\n2\n+3\n-4"));
 /// ```
-pub fn ints(input: &str) -> Vec<i64> {
+pub fn ints(input: &str) -> Vec<i32> {
     input.lines().map(|l| l.parse().unwrap()).collect()
 }
 
