@@ -19,7 +19,7 @@ impl Santa {
     }
 }
 
-pub fn day03p1(input: &[char]) -> i64 {
+pub fn day03p1(input: &[char]) -> usize {
     let mut santa = Santa::new();
     let mut visited = HashSet::new();
     visited.insert(santa);
@@ -29,10 +29,10 @@ pub fn day03p1(input: &[char]) -> i64 {
         visited.insert(santa);
     }
 
-    visited.len() as i64
+    visited.len()
 }
 
-pub fn day03p2(input: &[char]) -> i64 {
+pub fn day03p2(input: &[char]) -> usize {
     let mut santa = [Santa::new(), Santa::new()];
     let mut visited = HashSet::new();
     visited.insert(santa[0]);
@@ -42,7 +42,7 @@ pub fn day03p2(input: &[char]) -> i64 {
         visited.insert(santa[i % 2]);
     }
 
-    visited.len() as i64
+    visited.len()
 }
 
 #[cfg(test)]
