@@ -1,9 +1,9 @@
-pub fn day13p1(input: &[i64]) -> i64 {
-    input.len() as i64
+pub fn day13p1(input: &[i32]) -> usize {
+    input.len()
 }
 
-pub fn day13p2(input: &[i64]) -> i64 {
-    input.len() as i64
+pub fn day13p2(input: &[i32]) -> usize {
+    input.len()
 }
 
 #[cfg(test)]
