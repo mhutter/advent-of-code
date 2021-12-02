@@ -14,7 +14,22 @@ pub fn day02p1(input: &str) -> i32 {
 }
 
 pub fn day02p2(input: &str) -> i32 {
-    input.len() as i32
+    let mut aim = 0;
+    let mut pos = 0;
+    let mut depth = 0;
+
+    for direction in parse_input(input) {
+        match direction {
+            Direction::Forward(amount) => {
+                pos += amount;
+                depth += aim * amount;
+            }
+            Direction::Down(amount) => aim += amount,
+            Direction::Up(amount) => aim -= amount,
+        }
+    }
+
+    pos * depth
 }
 
 #[derive(Debug, PartialEq)]
@@ -59,7 +74,7 @@ mod tests {
 
     #[test]
     fn part2_examples() {
-        assert_eq!(0, day02p2(INPUT));
+        assert_eq!(900, day02p2(INPUT));
     }
 
     #[test]
