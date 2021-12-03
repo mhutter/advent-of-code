@@ -1,4 +1,4 @@
-pub fn day01p1(input: &[char]) -> usize {
+pub fn day01p1(input: &[char]) -> i32 {
     let mut floor = 0;
 
     for c in input {
