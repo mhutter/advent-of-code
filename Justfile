@@ -7,13 +7,13 @@ test-all: test-common
 	ls -1d 20* | \
 	while read -r dir; do
 		pushd $dir
-		cargo test --locked
+		just test
 		popd
 	done
 
 # Run tests for `common`
 test-common:
-	cd common && cargo test --locked
+	cd common && just test
 
 # Remove all `target` directories
 clean:

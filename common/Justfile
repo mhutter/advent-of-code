@@ -1,0 +1,11 @@
+set dotenv-load := false
+
+# Run all tests
+test: test-lib test-doc
+
+# Run lib tests
+test-lib:
+  cargo test --locked --lib
+# Run doctests
+test-doc:
+  cargo test --locked --doc
