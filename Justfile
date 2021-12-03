@@ -11,5 +11,10 @@ test-all: test-common
 		popd
 	done
 
+# Run tests for `common`
 test-common:
 	cd common && cargo test --locked
+
+# Remove all `target` directories
+clean:
+	rm -rf target */target
