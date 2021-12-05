@@ -19,10 +19,10 @@ mod bingo {
             self.next += 1;
         }
 
-        pub fn any_won(&self) -> Option<(u16, Board)> {
-            for board in &self.boards {
-                if board.won() {
-                    return Some((self.numbers[self.next - 1], *board));
+        pub fn any_won(&mut self) -> Option<(u16, Board)> {
+            for i in 0..(self.boards.len()) {
+                if self.boards[i].won() {
+                    return Some((self.numbers[self.next - 1], self.boards.swap_remove(i)));
                 }
             }
 
@@ -170,8 +170,17 @@ pub fn day04p1(input: &str) -> u32 {
     }
 }
 
-pub fn day04p2(_input: &str) -> u32 {
-    0
+pub fn day04p2(input: &str) -> u32 {
+    let mut game = bingo::Game::from(input);
+
+    loop {
+        game.advance();
+        while let Some((number, board)) = game.any_won() {
+            if game.boards.len() == 0 {
+                return board.score() * (number as u32);
+            }
+        }
+    }
 }
 
 #[cfg(test)]
@@ -207,7 +216,7 @@ mod tests {
 
     #[test]
     fn part2_examples() {
-        assert_eq!(0, day04p2(INPUT));
+        assert_eq!(1924, day04p2(INPUT));
     }
 
     fn test_board() -> bingo::Board {
