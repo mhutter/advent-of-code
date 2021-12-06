@@ -6,6 +6,40 @@ struct Point {
     pub y: u32,
 }
 
+impl Point {
+    fn from_to_x(&self, other: &Point) -> (u32, u32) {
+        if self.x > other.x {
+            return (other.x, self.x);
+        }
+
+        (self.x, other.x)
+    }
+
+    fn from_to_y(&self, other: &Point) -> (u32, u32) {
+        if self.y > other.y {
+            return (other.y, self.y);
+        }
+
+        (self.y, other.y)
+    }
+
+    fn range_x(&self, other: &Point) -> Vec<u32> {
+        if self.x > other.x {
+            return (other.x..=self.x).rev().collect();
+        }
+
+        (self.x..=other.x).collect()
+    }
+
+    fn range_y(&self, other: &Point) -> Vec<u32> {
+        if self.y > other.y {
+            return (other.y..=self.y).rev().collect();
+        }
+
+        (self.y..=other.y).collect()
+    }
+}
+
 impl From<&str> for Point {
     fn from(point: &str) -> Self {
         let mut coords = point.split(',').map(|p| p.parse::<u32>().unwrap());
@@ -63,18 +97,13 @@ impl Display for Map {
 pub fn day05p1(input: &str) -> usize {
     let lines = input.lines().map(|line| {
         let mut points = line.split(" -> ").map(Point::from);
-
         (points.next().unwrap(), points.next().unwrap())
     });
 
     let mut map = Map::new();
     for (p0, p1) in lines {
         if p0.x == p1.x {
-            let (from, to) = if p0.y > p1.y {
-                (p1.y, p0.y)
-            } else {
-                (p0.y, p1.y)
-            };
+            let (from, to) = p0.from_to_y(&p1);
 
             for y in from..=to {
                 let p = Point { x: p0.x, y };
@@ -83,11 +112,7 @@ pub fn day05p1(input: &str) -> usize {
         }
 
         if p0.y == p1.y {
-            let (from, to) = if p0.x > p1.x {
-                (p1.x, p0.x)
-            } else {
-                (p0.x, p1.x)
-            };
+            let (from, to) = p0.from_to_x(&p1);
 
             for x in from..=to {
                 let p = Point { x, y: p0.y };
@@ -99,8 +124,45 @@ pub fn day05p1(input: &str) -> usize {
     map.count_fields_with_at_least(2)
 }
 
-pub fn day05p2(input: &str) -> u32 {
-    input.len() as u32
+pub fn day05p2(input: &str) -> usize {
+    let lines = input.lines().map(|line| {
+        let mut points = line.split(" -> ").map(Point::from);
+        (points.next().unwrap(), points.next().unwrap())
+    });
+
+    let mut map = Map::new();
+
+    for (p0, p1) in lines {
+        if p0.x == p1.x {
+            let (from, to) = p0.from_to_y(&p1);
+
+            for y in from..=to {
+                let p = Point { x: p0.x, y };
+                map.increase(p);
+            }
+
+            continue;
+        }
+
+        if p0.y == p1.y {
+            let (from, to) = p0.from_to_x(&p1);
+
+            for x in from..=to {
+                let p = Point { x, y: p0.y };
+                map.increase(p);
+            }
+
+            continue;
+        }
+
+        let mut range_y = p0.range_y(&p1).into_iter();
+        for x in p0.range_x(&p1) {
+            let y = range_y.next().unwrap();
+            map.increase(Point { x, y });
+        }
+    }
+
+    map.count_fields_with_at_least(2)
 }
 
 #[cfg(test)]
@@ -114,7 +176,7 @@ mod tests {
 
     #[test]
     fn part2_examples() {
-        assert_eq!(0, day05p2(INPUT));
+        assert_eq!(12, day05p2(INPUT));
     }
 
     #[test]
