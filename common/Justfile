@@ -3,6 +3,16 @@ set dotenv-load := false
 # Run all tests
 test: test-lib test-doc
 
+# Run all linters
+lint: fmt clippy
+
+# Run cargo clippy
+clippy:
+  cargo clippy --locked
+# Run cargo fmt
+fmt:
+  cargo fmt -- --check
+
 # Run lib tests
 test-lib:
   cargo test --locked --lib
