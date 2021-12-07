@@ -1,8 +1,7 @@
+use advent_of_code_2021::day07::day07p1;
 use common::generate;
 
-use advent_of_code_2021::day07::day07p1;
-
 fn main() {
-    let i = generate::ints(include_str!("../../input/day07.txt"));
+    let i = generate::int_list(include_str!("../../input/day07.txt"));
     dbg!(day07p1(&i));
 }
