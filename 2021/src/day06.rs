@@ -1,24 +1,36 @@
-pub fn day06p1(mut input: Vec<u8>) -> usize {
-    for _ in 0..80 {
-        let mut new_fish = Vec::new();
+fn day06(input: Vec<u8>, days: usize) -> u64 {
+    let mut fish = [0; 10];
 
-        for fish in input.iter_mut() {
-            if *fish == 0 {
-                *fish = 6;
-                new_fish.push(8);
-            } else {
-                *fish -= 1;
-            }
-        }
-
-        input.append(&mut new_fish);
+    for i in input {
+        fish[i as usize] += 1;
     }
 
-    input.len()
+    for _ in 0..days {
+        for i in 0..=9 {
+            if i == 0 {
+                // spawn new fish
+                fish[9] = fish[i];
+                // reset fish
+                fish[7] += fish[i];
+
+                continue;
+            }
+
+            // advance all other fish
+            fish[i - 1] = fish[i]
+        }
+        fish[9] = 0;
+    }
+
+    fish.into_iter().sum()
 }
 
-pub fn day06p2(input: Vec<u8>) -> usize {
-    input.len()
+pub fn day06p1(input: Vec<u8>) -> u64 {
+    day06(input, 80)
+}
+
+pub fn day06p2(input: Vec<u8>) -> u64 {
+    day06(input, 256)
 }
 
 #[cfg(test)]
@@ -37,6 +49,6 @@ mod tests {
     #[test]
     fn part2_examples() {
         let input = generate::int_list(INPUT);
-        assert_eq!(0, day06p2(input));
+        assert_eq!(26984457539, day06p2(input));
     }
 }
