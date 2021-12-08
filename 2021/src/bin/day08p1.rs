@@ -1,8 +1,6 @@
-use common::generate;
-
 use advent_of_code_2021::day08::day08p1;
 
 fn main() {
-    let i = generate::ints(include_str!("../../input/day08.txt"));
-    dbg!(day08p1(&i));
+    let i = include_str!("../../input/day08.txt");
+    dbg!(day08p1(i));
 }
