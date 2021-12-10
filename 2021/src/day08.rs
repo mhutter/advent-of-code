@@ -1,3 +1,9 @@
+use std::collections::HashMap;
+
+const DEFAULT_WIRING: [&str; 10] = [
+    "abcefg", "cf", "acdeg", "acdfg", "bcdf", "abdfg", "abdefg", "acf", "abcdefg", "abcdfg",
+];
+
 pub fn day08p1(input: &str) -> usize {
     input
         .lines()
@@ -13,8 +19,66 @@ pub fn day08p1(input: &str) -> usize {
         .count()
 }
 
-pub fn day08p2(input: &str) -> i32 {
-    input.len() as i32
+pub fn day08p2(input: &str) -> u32 {
+    let digit_for_score = calc_default_score_map();
+
+    input
+        .lines()
+        .map(|line| {
+            let io: Vec<&str> = line.split(" | ").collect();
+            let input: Vec<&str> = io[0].split(' ').collect();
+            let output = io[1].split(' ');
+            let sps = score_per_segment(&input);
+
+            output
+                .map(|signal| {
+                    digit_for_score
+                        .get(
+                            &signal
+                                .chars()
+                                .map(|segment| sps.get(&segment).unwrap())
+                                .sum(),
+                        )
+                        .unwrap()
+                })
+                .fold(0, |acc: u32, e| acc * 10 + (*e as u32))
+        })
+        .sum()
+}
+
+fn score_per_segment(segments: &[&str]) -> HashMap<char, i32> {
+    let mut scores = HashMap::from([
+        ('a', 0),
+        ('b', 0),
+        ('c', 0),
+        ('d', 0),
+        ('e', 0),
+        ('f', 0),
+        ('g', 0),
+    ]);
+    for &segments in segments {
+        for segment in segments.chars() {
+            let e = scores.get_mut(&segment).unwrap();
+            *e += 1;
+        }
+    }
+
+    scores
+}
+
+fn calc_default_score_map() -> HashMap<i32, u8> {
+    let default_score = score_per_segment(&DEFAULT_WIRING);
+    (0..=9)
+        .map(|digit| {
+            (
+                DEFAULT_WIRING[digit]
+                    .chars()
+                    .map(|s| default_score.get(&s).unwrap())
+                    .sum(),
+                digit as u8,
+            )
+        })
+        .collect()
 }
 
 #[cfg(test)]
@@ -28,7 +92,7 @@ mod tests {
 
     #[test]
     fn part2_examples() {
-        assert_eq!(0, day08p2(INPUT));
+        assert_eq!(61229, day08p2(INPUT));
     }
 
     const INPUT: &str =
