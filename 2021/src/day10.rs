@@ -20,7 +20,7 @@ pub fn day10p2(input: &str) -> u64 {
         .map(score_for)
         .collect();
 
-    scores.sort();
+    scores.sort_unstable();
 
     let n = (scores.len() - 1) / 2;
     scores[n]
@@ -134,18 +134,6 @@ mod tests {
         assert_eq!(Some('>'), find_corruption("{()()()>"));
         assert_eq!(Some('}'), find_corruption("(((()))}"));
         assert_eq!(Some(')'), find_corruption("<([]){()}[{}])"));
-    }
-
-    #[test]
-    fn test_is_corrupted() {
-        for program in valid_programs() {
-            assert!(!is_corrupted(program), "is corrupted: {}", program);
-        }
-
-        assert!(is_corrupted("(]"));
-        assert!(is_corrupted("{()()()>"));
-        assert!(is_corrupted("(((()))}"));
-        assert!(is_corrupted("<([]){()}[{}])"));
     }
 
     fn valid_programs() -> Vec<&'static str> {

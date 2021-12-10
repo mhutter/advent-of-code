@@ -32,11 +32,11 @@ mod bingo {
 
     impl From<&str> for Game {
         fn from(input: &str) -> Self {
-            let mut lines = input.lines().into_iter();
+            let mut lines = input.lines();
             let numbers = lines
                 .next()
                 .unwrap()
-                .split(",")
+                .split(',')
                 .map(|e| e.parse().unwrap())
                 .collect();
 
@@ -46,7 +46,7 @@ mod bingo {
                 assert_eq!("", line);
                 let mut numbers = [[Field::Unmarked(0); 5]; 5];
 
-                for i in 0..5 {
+                for number in &mut numbers {
                     let line: [Field; 5] = lines
                         .next()
                         .unwrap()
@@ -57,7 +57,7 @@ mod bingo {
                         .try_into()
                         .unwrap();
 
-                    numbers[i] = line;
+                    *number = line;
                 }
 
                 let board = Board { numbers };
@@ -90,22 +90,16 @@ mod bingo {
 
         pub fn won(self) -> bool {
             // check rows
-            if self.numbers.into_iter().any(|row| {
-                row.into_iter().all(|e| match e {
-                    Field::Marked(_) => true,
-                    _ => false,
-                })
-            }) {
+            if self
+                .numbers
+                .into_iter()
+                .any(|row| row.into_iter().all(|e| matches!(e, Field::Marked(_))))
+            {
                 return true;
             }
 
             // check cols
-            (0..5).any(|col| {
-                (0..5).all(|row| match self.numbers[row][col] {
-                    Field::Marked(_) => true,
-                    _ => false,
-                })
-            })
+            (0..5).any(|col| (0..5).all(|row| matches!(self.numbers[row][col], Field::Marked(_))))
         }
 
         pub fn score(self) -> u32 {
@@ -138,7 +132,7 @@ mod bingo {
 
     impl Debug for Board {
         fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-            write!(f, "Board {{\n")?;
+            writeln!(f, "Board {{")?;
             for row in self.numbers {
                 for field in row {
                     match field {
@@ -146,7 +140,7 @@ mod bingo {
                         Field::Unmarked(n) => write!(f, " {:2}  ", n)?,
                     }
                 }
-                write!(f, "\n")?;
+                writeln!(f)?;
             }
             write!(f, "\n}}")
         }
@@ -176,7 +170,7 @@ pub fn day04p2(input: &str) -> u32 {
     loop {
         game.advance();
         while let Some((number, board)) = game.any_won() {
-            if game.boards.len() == 0 {
+            if game.boards.is_empty() {
                 return board.score() * (number as u32);
             }
         }

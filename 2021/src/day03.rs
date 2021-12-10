@@ -23,8 +23,8 @@ pub fn day03p1(input: &str) -> u32 {
     let mut epsilon: u32 = 0;
 
     for p in pos {
-        gamma = gamma << 1;
-        epsilon = epsilon << 1;
+        gamma <<= 1;
+        epsilon <<= 1;
         if p > (n / 2) {
             gamma += 1;
         } else {
@@ -38,7 +38,7 @@ pub fn day03p1(input: &str) -> u32 {
 pub fn day03p2(input: &str) -> u32 {
     let (values, size) = generate(input);
     let oxygen_generator = get_rating(values.clone(), size, false);
-    let co2_scrubber = get_rating(values.clone(), size, true);
+    let co2_scrubber = get_rating(values, size, true);
 
     oxygen_generator * co2_scrubber
 }
@@ -47,7 +47,7 @@ fn get_rating(mut values: Vec<u32>, size: usize, invert: bool) -> u32 {
     let flip = if invert { 1 } else { 0 };
     for pos in (0..size).rev() {
         let mask = 1 << pos;
-        let filter = (most_common_in_pos(values.clone(), pos) ^ flip) << pos;
+        let filter = (most_common_in_pos(&values, pos) ^ flip) << pos;
 
         values = values
             .into_iter()
@@ -95,8 +95,8 @@ pub fn generate(input: &str) -> (Vec<u32>, usize) {
 /// assert_eq!(1, most_common_in_pos(values.clone(), 1));
 /// assert_eq!(0, most_common_in_pos(values.clone(), 0));
 /// ```
-pub fn most_common_in_pos(values: Vec<u32>, pos: usize) -> u32 {
-    let digits: Vec<u32> = values.into_iter().map(|v| (v >> pos) & 1).collect();
+pub fn most_common_in_pos(values: &[u32], pos: usize) -> u32 {
+    let digits: Vec<u32> = values.iter().map(|v| (v >> pos) & 1).collect();
     let zeros = digits.iter().filter(|d| **d == 0).count();
     let ones = digits.iter().filter(|d| **d == 1).count();
 

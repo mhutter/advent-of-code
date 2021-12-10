@@ -9,10 +9,7 @@ pub fn day08p1(input: &str) -> usize {
                 .collect::<Vec<&str>>()
         })
         .flatten()
-        .filter(|e| match e.len() {
-            2 | 4 | 3 | 7 => true,
-            _ => false,
-        })
+        .filter(|e| matches!(e.len(), 2 | 4 | 3 | 7))
         .count()
 }
 

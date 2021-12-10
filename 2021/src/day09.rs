@@ -115,7 +115,7 @@ pub fn day09p2(input: &str) -> usize {
         })
         .collect();
 
-    basin_sizes.sort();
+    basin_sizes.sort_unstable();
     basin_sizes.into_iter().rev().take(3).product()
 }
 

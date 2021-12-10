@@ -1,5 +1,5 @@
 fn count_crabs(input: &[i32]) -> Vec<i32> {
-    let max = *input.into_iter().max().unwrap();
+    let max = *input.iter().max().unwrap();
     let mut crabs = vec![0; (max + 1) as usize];
 
     // Count crabs in each position

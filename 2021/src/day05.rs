@@ -87,7 +87,7 @@ impl Display for Map {
                 };
             }
 
-            writeln!(f, "")?
+            writeln!(f)?
         }
 
         Ok(())
