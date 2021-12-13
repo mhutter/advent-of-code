@@ -123,8 +123,21 @@ pub fn day11p1(input: &str) -> usize {
     num_flashes
 }
 
-pub fn day11p2(_input: &str) -> usize {
-    0
+pub fn day11p2(input: &str) -> usize {
+    let mut grid = Grid::from(input);
+    let mut round = 0;
+
+    loop {
+        round += 1;
+        grid.new_round();
+        let mut flashes_this_round = 0;
+        while let Some(flashed) = grid.flash_all() {
+            flashes_this_round += flashed;
+        }
+        if flashes_this_round == grid.size_x * grid.size_y {
+            return round;
+        }
+    }
 }
 
 #[cfg(test)]
@@ -138,7 +151,7 @@ mod tests {
 
     #[test]
     fn part2_examples() {
-        assert_eq!(0, day11p2(INPUT));
+        assert_eq!(195, day11p2(INPUT));
     }
 
     const INPUT: &str = "5483143223
