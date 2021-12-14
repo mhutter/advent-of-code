@@ -32,7 +32,8 @@ impl From<&str> for Fold {
     }
 }
 
-struct Sheet {
+#[derive(PartialEq)]
+pub struct Sheet {
     dots: HashSet<(usize, usize)>,
 }
 
@@ -148,8 +149,23 @@ pub fn day13p1(input: &str) -> usize {
     sheet.num_dots()
 }
 
-pub fn day13p2(_input: &str) -> usize {
-    0
+pub fn day13p2(input: &str) -> Sheet {
+    let mut lines = input.lines();
+    let mut sheet = Sheet::new();
+
+    for line in lines.by_ref() {
+        if line.is_empty() {
+            break;
+        }
+        sheet.add_dot(line);
+    }
+
+    let instructions = lines.map(Fold::from);
+    for instruction in instructions {
+        sheet.apply(instruction);
+    }
+
+    sheet
 }
 
 #[cfg(test)]
@@ -163,7 +179,24 @@ mod tests {
 
     #[test]
     fn part2_examples() {
-        assert_eq!(0, day13p2(INPUT));
+        let mut expected = Sheet::new();
+        expected.add_dot("0,0");
+        expected.add_dot("1,0");
+        expected.add_dot("2,0");
+        expected.add_dot("3,0");
+        expected.add_dot("4,0");
+        expected.add_dot("0,1");
+        expected.add_dot("4,1");
+        expected.add_dot("0,2");
+        expected.add_dot("4,2");
+        expected.add_dot("0,3");
+        expected.add_dot("4,3");
+        expected.add_dot("0,4");
+        expected.add_dot("1,4");
+        expected.add_dot("2,4");
+        expected.add_dot("3,4");
+        expected.add_dot("4,4");
+        assert_eq!(expected, day13p2(INPUT));
     }
 
     const INPUT: &str = "6,10
