@@ -89,11 +89,11 @@ pub fn generate(input: &str) -> (Vec<u32>, usize) {
 /// ```
 /// # use advent_of_code_2021::day03::most_common_in_pos;
 /// let values = vec![0b00100, 0b11110, 0b10110, 0b10111, 0b10101, 0b01111, 0b00111, 0b11100, 0b10000, 0b11001, 0b00010, 0b01010];
-/// assert_eq!(1, most_common_in_pos(values.clone(), 4));
-/// assert_eq!(0, most_common_in_pos(values.clone(), 3));
-/// assert_eq!(1, most_common_in_pos(values.clone(), 2));
-/// assert_eq!(1, most_common_in_pos(values.clone(), 1));
-/// assert_eq!(0, most_common_in_pos(values.clone(), 0));
+/// assert_eq!(1, most_common_in_pos(&values, 4));
+/// assert_eq!(0, most_common_in_pos(&values, 3));
+/// assert_eq!(1, most_common_in_pos(&values, 2));
+/// assert_eq!(1, most_common_in_pos(&values, 1));
+/// assert_eq!(0, most_common_in_pos(&values, 0));
 /// ```
 pub fn most_common_in_pos(values: &[u32], pos: usize) -> u32 {
     let digits: Vec<u32> = values.iter().map(|v| (v >> pos) & 1).collect();
