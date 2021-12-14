@@ -1,58 +1,102 @@
 use std::collections::HashMap;
 
-fn apply(polymer: &str, rules: &HashMap<&str, char>) -> String {
-    let chars: Vec<char> = polymer.chars().collect();
-    let mut out: Vec<char> = Vec::new();
+#[derive(Debug)]
+struct Polymer {
+    pairs: HashMap<(char, char), usize>,
+}
 
-    for i in 0..(chars.len() - 1) {
-        let curr = chars[i];
-        let next = chars[i + 1];
-
-        out.push(curr);
-        if let Some(insert) = rules.get(&[curr, next].iter().collect::<String>().as_str()) {
-            out.push(*insert);
+impl Polymer {
+    fn new(input: &str) -> Self {
+        let polymer_line: &[char] = &input.chars().collect::<Vec<_>>();
+        let mut pairs: HashMap<(char, char), usize> = HashMap::new();
+        for w in polymer_line.windows(2) {
+            let e = pairs.entry((w[0], w[1])).or_insert(0);
+            *e += 1;
         }
-    }
-    out.push(*chars.last().unwrap());
 
-    out.into_iter().collect()
-}
-
-fn most_and_leat_common_elements(polymer: &str) -> (usize, usize) {
-    let mut count: HashMap<char, usize> = HashMap::new();
-    for c in polymer.chars() {
-        let e = count.entry(c).or_insert(0);
-        *e += 1;
+        Self { pairs }
     }
 
-    (
-        *count.values().max().unwrap(),
-        *count.values().min().unwrap(),
-    )
+    fn apply(&mut self, rules: &HashMap<(char, char), char>) {
+        let mut pairs: HashMap<(char, char), usize> = HashMap::new();
+
+        for (&(l, r), count) in self.pairs.iter() {
+            if let Some(&insert) = rules.get(&(l, r)) {
+                let el = pairs.entry((l, insert)).or_insert(0);
+                *el += count;
+                let er = pairs.entry((insert, r)).or_insert(0);
+                *er += count;
+            } else {
+                let e = pairs.entry((l, r)).or_insert(0);
+                *e += count;
+            }
+        }
+        self.pairs = pairs;
+    }
+
+    fn element_counts(&self) -> HashMap<char, usize> {
+        let mut out = HashMap::new();
+
+        for (&(l, r), count) in self.pairs.iter() {
+            let el = out.entry(l).or_insert(0);
+            *el += count;
+            let er = out.entry(r).or_insert(0);
+            *er += count;
+        }
+
+        // to count the elements in a polymer by knowing only the pairs:
+        // - count all elements in each par
+        // - add 1 to the first and last element in the chain (the only ones that will have an odd count)
+        // - divide the number by 2
+        for (_, count) in out.iter_mut() {
+            if *count & 1 == 1 {
+                // count is odd
+                *count += 1;
+            }
+
+            *count /= 2;
+        }
+
+        out
+    }
+
+    fn most_and_leat_common_elements(&self) -> (usize, usize) {
+        let counts = self.element_counts();
+
+        (
+            *counts.values().max().unwrap(),
+            *counts.values().min().unwrap(),
+        )
+    }
 }
 
-pub fn day14p1(input: &str) -> usize {
+fn day14(input: &str, n: usize) -> usize {
     let mut lines = input.lines();
-    let mut polymer = lines.next().unwrap().to_string();
-    lines.next();
 
-    let rules: HashMap<&str, char> = lines
+    let mut polymer = Polymer::new(lines.next().unwrap());
+    assert!(lines.next().unwrap().is_empty());
+
+    let rules: HashMap<(char, char), char> = lines
         .map(|line| {
             let parts: Vec<&str> = line.split(" -> ").collect();
-            (parts[0], parts[1].chars().next().unwrap())
+            let key = parts[0].chars().collect::<Vec<_>>();
+            ((key[0], key[1]), parts[1].chars().next().unwrap())
         })
         .collect();
 
-    for _ in 0..10 {
-        polymer = apply(&polymer, &rules);
+    for _ in 0..n {
+        polymer.apply(&rules);
     }
 
-    let (most, least) = most_and_leat_common_elements(&polymer);
+    let (most, least) = polymer.most_and_leat_common_elements();
     most - least
 }
+pub fn day14p1(input: &str) -> usize {
+    day14(input, 10)
+}
 
-pub fn day14p2(_input: &str) -> usize {
-    0
+pub fn day14p2(input: &str) -> usize {
+    day14(input, 40)
 }
 
 #[cfg(test)]
@@ -66,7 +110,7 @@ mod tests {
 
     #[test]
     fn part2_examples() {
-        assert_eq!(0, day14p2(INPUT));
+        assert_eq!(2188189693529, day14p2(INPUT));
     }
 
     const INPUT: &str = "NNCB
