@@ -1,27 +1,46 @@
-fn parse(input: &str) -> Vec<u64> {
-    let mut elves: Vec<u64> = vec![0];
+use std::{cmp::Reverse, str::Lines};
 
-    for line in input.lines() {
-        if line.is_empty() {
-            elves.push(0);
-            continue;
+struct ElvenCalories<'a>(Lines<'a>);
+
+impl<'a> ElvenCalories<'a> {
+    fn new(input: &'a str) -> Self {
+        Self(input.lines())
+    }
+}
+
+impl Iterator for ElvenCalories<'_> {
+    type Item = u64;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        let mut acc = 0;
+
+        while let Some(line) = self.0.next() {
+            if line.is_empty() {
+                break;
+            }
+
+            acc += line.parse::<u64>().unwrap();
         }
 
-        let calories = line.parse::<u64>().unwrap();
-        *elves.last_mut().unwrap() += calories;
+        match acc {
+            0 => None,
+            _ => Some(acc),
+        }
     }
+}
 
-    elves.sort();
-    elves.reverse();
-    elves
+fn get_top(input: &str, n: usize) -> u64 {
+    let mut calories: Vec<u64> = ElvenCalories::new(input).collect();
+    calories.sort_by_key(|&n| Reverse(n));
+    calories.get(0..n).unwrap().into_iter().sum()
 }
 
 pub fn day01p1(input: &str) -> u64 {
-    *parse(input).first().unwrap()
+    get_top(input, 1)
 }
 
 pub fn day01p2(input: &str) -> u64 {
-    parse(input).get(0..=2).unwrap().into_iter().sum()
+    get_top(input, 3)
 }
 
 #[cfg(test)]
