@@ -1,5 +1,6 @@
 use std::{cmp::Reverse, str::Lines};
 
+/// An iterator that yields the sum of calories for each elf.
 struct ElvenCalories<'a>(Lines<'a>);
 
 impl<'a> ElvenCalories<'a> {
@@ -22,6 +23,7 @@ impl Iterator for ElvenCalories<'_> {
             acc += line.parse::<u64>().unwrap();
         }
 
+        // Let's assume that if there were no calories added, no more lines were left.
         match acc {
             0 => None,
             _ => Some(acc),
@@ -29,9 +31,15 @@ impl Iterator for ElvenCalories<'_> {
     }
 }
 
+/// Calculate the sum of the top `n` Elfs
 fn get_top(input: &str, n: usize) -> u64 {
+    // collect list of calorie totals
     let mut calories: Vec<u64> = ElvenCalories::new(input).collect();
+
+    // sort from biggest to smallest
     calories.sort_by_key(|&n| Reverse(n));
+
+    // get the sum of the top `n` elements
     calories.get(0..n).unwrap().into_iter().sum()
 }
 
