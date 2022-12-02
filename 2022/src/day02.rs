@@ -1,3 +1,4 @@
+#[derive(Debug, Clone, Copy)]
 enum Hand {
     Rock,
     Paper,
@@ -36,6 +37,22 @@ impl Hand {
             },
         }
     }
+
+    fn choose_for(&self, outcome: Outcome) -> Self {
+        match outcome {
+            Outcome::Draw => *self,
+            Outcome::Win => match self {
+                Self::Rock => Self::Paper,
+                Self::Paper => Self::Scissors,
+                Self::Scissors => Self::Rock,
+            },
+            Outcome::Lost => match self {
+                Self::Rock => Self::Scissors,
+                Self::Paper => Self::Rock,
+                Self::Scissors => Self::Paper,
+            },
+        }
+    }
 }
 
 impl From<char> for Hand {
@@ -49,6 +66,7 @@ impl From<char> for Hand {
     }
 }
 
+#[derive(Debug, Clone, Copy)]
 enum Outcome {
     Lost,
     Draw,
@@ -68,11 +86,26 @@ impl Outcome {
     }
 }
 
-fn parse(line: &str) -> (Hand, Hand) {
+impl From<char> for Outcome {
+    fn from(c: char) -> Self {
+        match c {
+            'X' => Self::Lost,
+            'Y' => Self::Draw,
+            'Z' => Self::Win,
+            _ => panic!("Invalid outcome: {c}"),
+        }
+    }
+}
+
+fn parse<L, R>(line: &str) -> (L, R)
+where
+    L: From<char>,
+    R: From<char>,
+{
     let mut chars = line.chars();
-    let a: Hand = chars.next().unwrap().into();
+    let a = chars.next().unwrap().into();
     chars.next().unwrap();
-    let b: Hand = chars.next().unwrap().into();
+    let b = chars.next().unwrap().into();
     (a, b)
 }
 
@@ -81,7 +114,7 @@ pub fn day02p1(input: &str) -> usize {
         .lines()
         .map(|line| {
             // parse data
-            let (enemy, own) = parse(line);
+            let (enemy, own): (Hand, Hand) = parse(line);
 
             // determine score for the shape
             let shape_score = own.score();
@@ -95,8 +128,23 @@ pub fn day02p1(input: &str) -> usize {
         .sum()
 }
 
-pub fn day02p2(_input: &str) -> usize {
-    0
+pub fn day02p2(input: &str) -> usize {
+    input
+        .lines()
+        .map(|line| {
+            // parse data
+            let (enemy, outcome): (Hand, Outcome) = parse(line);
+
+            // determine what hand to play
+            let own = enemy.choose_for(outcome);
+
+            // calculate scores
+            let shape_score = own.score();
+            let outcome_score = outcome.score();
+
+            shape_score + outcome_score
+        })
+        .sum()
 }
 
 #[cfg(test)]
