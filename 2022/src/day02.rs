@@ -4,6 +4,40 @@ enum Hand {
     Scissors,
 }
 
+impl Hand {
+    /// Calcluate the score for the shape.
+    ///
+    /// 1 for Rock, 2 for Paper, and 3 for Scissors
+    pub fn score(&self) -> usize {
+        match self {
+            Self::Rock => 1,
+            Self::Paper => 2,
+            Self::Scissors => 3,
+        }
+    }
+
+    /// Calcluate the outcome vs the given hand
+    pub fn outcome_vs(&self, other: &Self) -> Outcome {
+        match self {
+            Hand::Rock => match other {
+                Hand::Rock => Outcome::Draw,
+                Hand::Paper => Outcome::Lost,
+                Hand::Scissors => Outcome::Win,
+            },
+            Hand::Paper => match other {
+                Hand::Rock => Outcome::Win,
+                Hand::Paper => Outcome::Draw,
+                Hand::Scissors => Outcome::Lost,
+            },
+            Hand::Scissors => match other {
+                Hand::Rock => Outcome::Lost,
+                Hand::Paper => Outcome::Win,
+                Hand::Scissors => Outcome::Draw,
+            },
+        }
+    }
+}
+
 impl From<char> for Hand {
     fn from(c: char) -> Self {
         match c {
@@ -21,47 +55,40 @@ enum Outcome {
     Win,
 }
 
+impl Outcome {
+    /// Calculate the score for the given outcome
+    ///
+    /// 0 if you lost, 3 if the round was a draw, and 6 if you won
+    pub fn score(&self) -> usize {
+        match self {
+            Self::Lost => 0,
+            Self::Draw => 3,
+            Self::Win => 6,
+        }
+    }
+}
+
+fn parse(line: &str) -> (Hand, Hand) {
+    let mut chars = line.chars();
+    let a: Hand = chars.next().unwrap().into();
+    chars.next().unwrap();
+    let b: Hand = chars.next().unwrap().into();
+    (a, b)
+}
+
 pub fn day02p1(input: &str) -> usize {
     input
         .lines()
         .map(|line| {
             // parse data
-            let mut chars = line.chars();
-            let enemy: Hand = chars.next().unwrap().into();
-            chars.next().unwrap();
-            let own: Hand = chars.next().unwrap().into();
+            let (enemy, own) = parse(line);
 
             // determine score for the shape
-            let shape_score = match own {
-                Hand::Rock => 1,
-                Hand::Paper => 2,
-                Hand::Scissors => 3,
-            };
+            let shape_score = own.score();
 
             // determine outcome
-            let outcome = match own {
-                Hand::Rock => match enemy {
-                    Hand::Rock => Outcome::Draw,
-                    Hand::Paper => Outcome::Lost,
-                    Hand::Scissors => Outcome::Win,
-                },
-                Hand::Paper => match enemy {
-                    Hand::Rock => Outcome::Win,
-                    Hand::Paper => Outcome::Draw,
-                    Hand::Scissors => Outcome::Lost,
-                },
-                Hand::Scissors => match enemy {
-                    Hand::Rock => Outcome::Lost,
-                    Hand::Paper => Outcome::Win,
-                    Hand::Scissors => Outcome::Draw,
-                },
-            };
-
-            let outcome_score = match outcome {
-                Outcome::Lost => 0,
-                Outcome::Draw => 3,
-                Outcome::Win => 6,
-            };
+            let outcome = own.outcome_vs(&enemy);
+            let outcome_score = outcome.score();
 
             shape_score + outcome_score
         })
@@ -83,7 +110,7 @@ mod tests {
 
     #[test]
     fn part2_examples() {
-        assert_eq!(0, day02p2(INPUT));
+        assert_eq!(12, day02p2(INPUT));
     }
 
     const INPUT: &str = "A Y\nB X\nC Z";
