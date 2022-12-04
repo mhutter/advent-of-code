@@ -7,12 +7,26 @@ mod cleanup {
     impl Pair {
         /// Determine whether one of the Assignments fully contains the other
         pub fn has_full_overlap(&self) -> bool {
-            let Self(Assignment(lf, lt), Assignment(rf, rt)) = self;
+            let Self(Assignment(left_from, left_to), Assignment(right_from, right_to)) = self;
 
-            let lr = lf..=lt;
-            let rr = rf..=rt;
+            let left_range = left_from..=left_to;
+            let right_range = right_from..=right_to;
 
-            (lr.contains(&rf) && lr.contains(&rt)) || (rr.contains(&lf) && rr.contains(&lt))
+            (left_range.contains(&right_from) && left_range.contains(&right_to))
+                || (right_range.contains(&left_from) && right_range.contains(&left_to))
+        }
+
+        /// Determine whether one of the assignments has ANY overlap with the other
+        pub fn has_any_overlap(&self) -> bool {
+            let Self(Assignment(left_from, left_to), Assignment(right_from, right_to)) = self;
+
+            let left_range = left_from..=left_to;
+            let right_range = right_from..=right_to;
+
+            left_range.contains(&right_from)
+                || left_range.contains(&right_to)
+                || right_range.contains(&left_from)
+                || right_range.contains(&left_to)
         }
     }
 
@@ -44,8 +58,12 @@ pub fn day04p1(input: &str) -> usize {
         .count()
 }
 
-pub fn day04p2(_input: &str) -> usize {
-    0
+pub fn day04p2(input: &str) -> usize {
+    input
+        .lines()
+        .map(Pair::from)
+        .filter(Pair::has_any_overlap)
+        .count()
 }
 
 #[cfg(test)]
@@ -59,7 +77,7 @@ mod tests {
 
     #[test]
     fn part2_examples() {
-        assert_eq!(0, day04p2(INPUT));
+        assert_eq!(4, day04p2(INPUT));
     }
 
     const INPUT: &str = "2-4,6-8
