@@ -23,17 +23,11 @@ pub fn day03p1(input: &[u8]) -> usize {
 
             println!("match: {}", *c as char);
 
-            // match, calculate priority & add to sum!
-            // In ASCII, uppercase letters have decimal values 65-90, and lowercase 97-122.
-            let prio = match c {
-                65..=90 => c - (65 - 26),
-                97..=122 => c - 97,
-                _ => panic!("Invalid byte: {c:?}"),
-            };
+            let prio = prio_for(c);
 
             println!("prio: {prio}");
 
-            sum += prio as usize + 1;
+            sum += prio;
 
             // if the item appears multiple times we still only count it once, so abort here
             break;
@@ -43,8 +37,39 @@ pub fn day03p1(input: &[u8]) -> usize {
     sum
 }
 
-pub fn day03p2(_input: &[u8]) -> usize {
-    0
+/// calculate prio for the given character
+///
+/// In ASCII, uppercase letters have decimal values 65-90, and lowercase 97-122.
+fn prio_for(c: &u8) -> usize {
+    let p = match c {
+        65..=90 => c - (65 - 26),
+        97..=122 => c - 97,
+        _ => panic!("Invalid byte: {c:?}"),
+    };
+    p as usize + 1
+}
+
+pub fn day03p2(input: &[u8]) -> usize {
+    let mut i = 0;
+    let lines: Vec<&[u8]> = input.split(|&c| c == b'\n').collect();
+    let mut sum = 0;
+
+    loop {
+        if i >= lines.len() {
+            break;
+        }
+
+        for c in lines[i] {
+            if lines[i + 1].contains(c) && lines[i + 2].contains(c) {
+                sum += prio_for(c);
+                break;
+            }
+        }
+
+        i += 3;
+    }
+
+    sum
 }
 
 #[cfg(test)]
@@ -58,7 +83,7 @@ mod tests {
 
     #[test]
     fn part2_examples() {
-        assert_eq!(0, day03p2(INPUT));
+        assert_eq!(70, day03p2(INPUT));
     }
 
     const INPUT: &[u8] = b"vJrwpWtwJgWrhcsFMMfFFhFp
