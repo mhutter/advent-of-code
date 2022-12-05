@@ -15,7 +15,7 @@ impl Iterator for ElvenCalories<'_> {
     fn next(&mut self) -> Option<Self::Item> {
         let mut acc = 0;
 
-        while let Some(line) = self.0.next() {
+        for line in self.0.by_ref() {
             if line.is_empty() {
                 break;
             }
@@ -40,7 +40,7 @@ fn get_top(input: &str, n: usize) -> u64 {
     calories.sort_by_key(|&n| Reverse(n));
 
     // get the sum of the top `n` elements
-    calories.get(0..n).unwrap().into_iter().sum()
+    calories.get(0..n).unwrap().iter().sum()
 }
 
 pub fn day01p1(input: &str) -> u64 {
