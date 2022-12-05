@@ -62,7 +62,7 @@ mod supply {
                     let stack = names.next().unwrap();
 
                     if let Ok(crt) = crt {
-                        stacks.place_on(stack, crt);
+                        stacks.place_one_on(stack, crt);
                     }
                 }
             }
@@ -78,29 +78,48 @@ mod supply {
         }
 
         /// Place the given `Crate` on the `stack`
-        pub fn place_on(&mut self, stack: &str, crt: Crate) {
+        pub fn place_one_on(&mut self, stack: &str, crt: Crate) {
             self.0
                 .get_mut(stack)
                 .unwrap_or_else(|| panic!("invalid stack: {stack}"))
                 .push(crt);
         }
 
-        /// Remove one crate from the given `stack` and return it
-        pub fn take_from(&mut self, stack: &str) -> Option<Crate> {
+        /// Place the given `Crate`s on the `stack`
+        pub fn place_all_on(&mut self, stack: &str, mut crt: Vec<Crate>) {
             self.0
                 .get_mut(stack)
                 .unwrap_or_else(|| panic!("invalid stack: {stack}"))
-                .pop()
+                .append(&mut crt);
+        }
+
+        /// Remove `n` crates from the given `stack` and return it
+        pub fn take_from(&mut self, stack: &str, n: usize) -> Vec<Crate> {
+            let stack = self
+                .0
+                .get_mut(stack)
+                .unwrap_or_else(|| panic!("invalid stack: {stack}"));
+
+            stack.split_off(stack.len() - n)
         }
 
         /// Execute a single instruction by moving one crate after another
-        pub fn execute_single_crate(&mut self, instruction: Instruction) -> Result<(), ()> {
+        pub fn execute_single_crate(&mut self, instruction: Instruction) {
             for _ in 0..instruction.amount {
-                let crt = self.take_from(instruction.from).ok_or(())?;
-                self.place_on(instruction.to, crt);
-            }
+                let crt = self
+                    .take_from(instruction.from, 1)
+                    .first()
+                    .expect("one crate")
+                    .to_owned();
 
-            Ok(())
+                self.place_one_on(instruction.to, crt);
+            }
+        }
+
+        /// Execute a single instruction by moving multiple crates at a time
+        pub fn execute_multi_crate(&mut self, instruction: Instruction) {
+            let crates = self.take_from(instruction.from, instruction.amount);
+            self.place_all_on(instruction.to, crates);
         }
 
         /// get the crates from the top of each stack, ordered by stack name.
@@ -153,16 +172,25 @@ pub fn day05p1(input: &str) -> String {
 
     procedure.lines().for_each(|line| {
         let instruction = Instruction::try_from(line).expect("read instruction");
-        stacks
-            .execute_single_crate(instruction)
-            .expect("execute instruction");
+        stacks.execute_single_crate(instruction);
     });
 
     stacks.get_top_crates()
 }
 
-pub fn day05p2(_input: &str) -> String {
-    String::new()
+pub fn day05p2(input: &str) -> String {
+    let (drawing, procedure) = input
+        .split_once("\n\n")
+        .expect("Input must contain drawing and procedure");
+
+    let mut stacks = Stacks::from(drawing);
+
+    procedure.lines().for_each(|line| {
+        let instruction = Instruction::try_from(line).expect("read instruction");
+        stacks.execute_multi_crate(instruction);
+    });
+
+    stacks.get_top_crates()
 }
 
 #[cfg(test)]
