@@ -93,19 +93,14 @@ mod supply {
                 .pop()
         }
 
-        /// Execute a single instruction
-        pub fn execute(&mut self, instruction: Instruction) {
+        /// Execute a single instruction by moving one crate after another
+        pub fn execute_single_crate(&mut self, instruction: Instruction) -> Result<(), ()> {
             for _ in 0..instruction.amount {
-                let crt = self.take_from(instruction.from).expect("crates on stack");
+                let crt = self.take_from(instruction.from).ok_or(())?;
                 self.place_on(instruction.to, crt);
             }
-        }
 
-        /// Execute all instructions
-        pub fn execute_all(&mut self, instructions: Vec<Instruction>) {
-            for instruction in instructions {
-                self.execute(instruction);
-            }
+            Ok(())
         }
 
         /// get the crates from the top of each stack, ordered by stack name.
@@ -155,15 +150,15 @@ pub fn day05p1(input: &str) -> String {
         .expect("Input must contain drawing and procedure");
 
     let mut stacks = Stacks::from(drawing);
-    let instructions = procedure
-        .lines()
-        .map(Instruction::try_from)
-        .collect::<Result<Vec<_>, _>>()
-        .unwrap();
 
-    stacks.execute_all(instructions);
+    procedure.lines().for_each(|line| {
+        let instruction = Instruction::try_from(line).expect("read instruction");
+        stacks
+            .execute_single_crate(instruction)
+            .expect("execute instruction");
+    });
 
-    String::from(stacks.get_top_crates())
+    stacks.get_top_crates()
 }
 
 pub fn day05p2(_input: &str) -> String {
@@ -181,7 +176,7 @@ mod tests {
 
     #[test]
     fn part2_examples() {
-        assert_eq!("", &day05p2(INPUT));
+        assert_eq!("MCD", &day05p2(INPUT));
     }
 
     const INPUT: &str = "    [D]    
