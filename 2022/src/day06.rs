@@ -1,17 +1,27 @@
 use std::collections::HashSet;
 
-pub fn day06p1(input: &str) -> usize {
+fn day06(input: &str, window_size: usize) -> usize {
     let data = input.chars().collect::<Vec<_>>();
     let l = data.len();
 
-    (0..l - 4)
-        .find(|&i| data[i..i + 4].iter().collect::<HashSet<_>>().len().eq(&4))
+    (0..l - window_size)
+        .find(|&i| {
+            data[i..i + window_size]
+                .iter()
+                .collect::<HashSet<_>>()
+                .len()
+                .eq(&window_size)
+        })
         .expect("find a marker position")
-        + 4
+        + window_size
 }
 
-pub fn day06p2(_input: &str) -> usize {
-    0
+pub fn day06p1(input: &str) -> usize {
+    day06(input, 4)
+}
+
+pub fn day06p2(input: &str) -> usize {
+    day06(input, 14)
 }
 
 #[cfg(test)]
@@ -29,11 +39,11 @@ mod tests {
 
     #[test]
     fn part2_examples() {
-        assert_eq!(0, day06p2(INPUT[0]));
-        assert_eq!(0, day06p2(INPUT[1]));
-        assert_eq!(0, day06p2(INPUT[2]));
-        assert_eq!(0, day06p2(INPUT[3]));
-        assert_eq!(0, day06p2(INPUT[4]));
+        assert_eq!(19, day06p2(INPUT[0]));
+        assert_eq!(23, day06p2(INPUT[1]));
+        assert_eq!(23, day06p2(INPUT[2]));
+        assert_eq!(29, day06p2(INPUT[3]));
+        assert_eq!(26, day06p2(INPUT[4]));
     }
 
     const INPUT: &[&str] = &[
