@@ -1,25 +1,28 @@
 use std::collections::HashSet;
 
+#[inline]
 fn day06(input: &str, window_size: usize) -> usize {
-    let data = input.chars().collect::<Vec<_>>();
-    let l = data.len();
-
-    (0..l - window_size)
-        .find(|&i| {
-            data[i..i + window_size]
-                .iter()
+    input
+        .chars()
+        .collect::<Vec<_>>()
+        .windows(window_size)
+        .enumerate()
+        .find_map(|(i, w)| {
+            w.iter()
                 .collect::<HashSet<_>>()
                 .len()
                 .eq(&window_size)
+                .then_some(i + window_size)
         })
         .expect("find a marker position")
-        + window_size
 }
 
+#[inline]
 pub fn day06p1(input: &str) -> usize {
     day06(input, 4)
 }
 
+#[inline]
 pub fn day06p2(input: &str) -> usize {
     day06(input, 14)
 }
