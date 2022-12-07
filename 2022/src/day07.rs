@@ -1,3 +1,4 @@
+use color_eyre::eyre;
 use input::*;
 
 mod input {
@@ -158,8 +159,20 @@ pub fn day07p1(input: &str) -> color_eyre::Result<usize> {
     Ok(root.all_sizes().into_iter().filter(|&s| s <= 100000).sum())
 }
 
-pub fn day07p2(_input: &str) -> color_eyre::Result<usize> {
-    Ok(0)
+pub fn day07p2(input: &str) -> color_eyre::Result<usize> {
+    const TOTAL_SIZE: usize = 70000000;
+    const SPACE_NEEDED: usize = 30000000;
+
+    let root: Dir = input.parse()?;
+    let unused = TOTAL_SIZE - root.size;
+    let difference = SPACE_NEEDED - unused;
+
+    let mut sizes = root.all_sizes();
+    sizes.sort_unstable();
+    sizes
+        .into_iter()
+        .find(|&s| s >= difference)
+        .ok_or(eyre::eyre!("No matching folder found"))
 }
 
 #[cfg(test)]
@@ -179,7 +192,7 @@ mod tests {
 
     #[test]
     fn part2_examples() {
-        assert_eq!(0, day07p2(INPUT).unwrap());
+        assert_eq!(24933642, day07p2(INPUT).unwrap());
     }
 
     const INPUT: &str = "$ cd /
