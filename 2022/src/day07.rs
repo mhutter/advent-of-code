@@ -79,9 +79,8 @@ mod input {
 
     #[derive(Debug, Default)]
     pub struct Dir {
-        files: HashMap<String, usize>,
         subdirs: HashMap<String, Self>,
-        size: usize,
+        pub size: usize,
     }
 
     impl Dir {
@@ -95,9 +94,7 @@ mod input {
                     Entry::Dir(name) => {
                         self.subdirs.entry(name).or_default();
                     }
-                    Entry::File(name, size) => {
-                        self.files.insert(name, size);
-                    }
+                    Entry::File(_, _) => (),
                 };
                 return;
             }
@@ -108,10 +105,6 @@ mod input {
                 .entry(subdir)
                 .or_default()
                 .insert_at(path, entry)
-        }
-
-        pub fn size(&self) -> usize {
-            self.size
         }
 
         pub fn all_sizes(&self) -> Vec<usize> {
@@ -176,7 +169,7 @@ mod tests {
     #[test]
     fn size() {
         let root: input::Dir = INPUT.parse().unwrap();
-        assert_eq!(48381165, root.size());
+        assert_eq!(48381165, root.size);
     }
 
     #[test]
