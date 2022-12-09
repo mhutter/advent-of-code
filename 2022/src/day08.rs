@@ -52,14 +52,14 @@ where
         self.clone()
             .enumerate()
             .find_map(|(n, x)| map.get(&(x, y)).unwrap().ge(tree).then_some(n + 1))
-            .unwrap_or(self.count())
+            .unwrap_or_else(|| self.count())
     }
 
     fn viewing_distance_y(self, x: usize, map: &Map, tree: &Tree) -> usize {
         self.clone()
             .enumerate()
             .find_map(|(n, y)| map.get(&(x, y)).unwrap().ge(tree).then_some(n + 1))
-            .unwrap_or(self.count())
+            .unwrap_or_else(|| self.count())
     }
 }
 
