@@ -51,6 +51,7 @@ mod crt {
         /// Pixels of the CRT
         crt: [[bool; CRT_W]; CRT_H],
     }
+
     impl<const CRT_W: usize, const CRT_H: usize> Default for Cpu<CRT_W, CRT_H> {
         /// Correctly initialize a CPU as per problem statement
         ///
