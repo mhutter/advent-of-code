@@ -157,7 +157,8 @@ mod tests {
 
     #[test]
     fn part2_examples() {
-        env_logger::builder().is_test(true).init();
+        let _ = env_logger::builder().is_test(true).try_init();
+
         assert_eq!(1, day09p2(INPUT), "small input");
         assert_eq!(36, day09p2(INPUT2), "big input");
     }

@@ -33,9 +33,9 @@ mod crt {
 
     /// Models the internal state of our CPU
     #[derive(Debug)]
-    pub struct Cpu {
+    pub struct Cpu<const CRT_W: usize, const CRT_H: usize> {
         /// The current cycle we're on
-        cycle: u64,
+        cycle: usize,
 
         /// The X register
         x: i64,
@@ -46,26 +46,37 @@ mod crt {
         /// when the next sample must be taken
         ///
         /// (in cycle 20 and every 40th after that)
-        next_sample: u64,
+        next_sample: usize,
+
+        /// Pixels of the CRT
+        crt: [[bool; CRT_W]; CRT_H],
     }
-    impl Cpu {
+    impl<const CRT_W: usize, const CRT_H: usize> Default for Cpu<CRT_W, CRT_H> {
         /// Correctly initialize a CPU as per problem statement
         ///
         /// X is set to 1, and the next sample will be in cycle 20.
-        pub fn new() -> Self {
+        fn default() -> Self {
             Self {
-                acc: 0,
                 cycle: 0,
-                next_sample: 20,
                 x: 1,
+                acc: 0,
+                next_sample: 20,
+                crt: [[false; CRT_W]; CRT_H],
             }
         }
+    }
 
+    impl<const CRT_W: usize, const CRT_H: usize> Cpu<CRT_W, CRT_H> {
         /// Exectute the given instruction
         pub fn execute(&mut self, i: Instruction) {
             debug!("{self:?} {i:?}");
 
             for _ in 0..i.cycles() {
+                // determine whether to draw the current pixel
+                let line = self.cycle / CRT_W;
+                let pos = self.cycle % CRT_W;
+                self.crt[line][pos] = self.x.abs_diff(pos.try_into().unwrap()) <= 1;
+
                 // Increase the cycle counter
                 self.cycle += 1;
 
@@ -90,36 +101,68 @@ mod crt {
         pub fn get_acc(&self) -> i64 {
             self.acc
         }
+
+        /// Render the CRT into a string
+        pub fn render_crt(&self) -> String {
+            self.crt
+                .iter()
+                .map(|row| {
+                    row.iter()
+                        .map(|c| match c {
+                            true => '#',
+                            false => '.',
+                        })
+                        .collect()
+                })
+                .collect::<Vec<String>>()
+                .join("\n")
+        }
     }
 }
 
-pub fn day10p1(input: &str) -> i64 {
-    let mut cpu = Cpu::new();
+pub fn run(input: &str) -> Cpu<40, 6> {
+    let mut cpu = Cpu::default();
 
     input
         .lines()
         .map(Instruction::parse)
         .for_each(|i| cpu.execute(i));
 
+    cpu
+}
+
+pub fn day10p1(input: &str) -> i64 {
+    let cpu = run(input);
     cpu.get_acc()
 }
 
-pub fn day10p2(_input: &str) -> usize {
-    0
+pub fn day10p2(input: &str) -> String {
+    let cpu = run(input);
+    cpu.render_crt()
 }
 
 #[cfg(test)]
 mod tests {
+
     use super::*;
 
     #[test]
     fn part1_examples() {
+        let _ = env_logger::builder().is_test(true).try_init();
+
         assert_eq!(13140, day10p1(INPUT));
     }
 
     #[test]
     fn part2_examples() {
-        assert_eq!(0, day10p2(INPUT));
+        const OUTPUT: &str = "##..##..##..##..##..##..##..##..##..##..
+###...###...###...###...###...###...###.
+####....####....####....####....####....
+#####.....#####.....#####.....#####.....
+######......######......######......####
+#######.......#######.......#######.....";
+
+        assert_eq!(OUTPUT, day10p2(INPUT));
     }
 
     const INPUT: &str = "addx 15
