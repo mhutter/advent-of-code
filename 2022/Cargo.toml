@@ -10,7 +10,6 @@ authors = [
 
 [dependencies]
 color-eyre = "0.6.2"
-common = { path = "../common" }
 env_logger = "0.10.0"
 log = "0.4.17"
 
