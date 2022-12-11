@@ -1,8 +1,10 @@
-use std::cmp::Reverse;
+use std::{cmp::Reverse, ops::Div};
 
 use monkey::*;
 
 mod monkey {
+    use std::ops::Rem;
+
     /// An item that is being hold by a monkey
     pub type Item = u64;
 
@@ -11,7 +13,8 @@ mod monkey {
         pub items: Vec<Item>,
         pub inspections: u64,
         pub operation: Box<dyn Fn(Item) -> Item>,
-        pub test: Box<dyn Fn(Item) -> bool>,
+        pub divisor: Item,
+        // pub test: Box<dyn Fn(Item) -> bool>,
         pub on_true: usize,
         pub on_false: usize,
     }
@@ -27,31 +30,40 @@ mod monkey {
     }
 
     impl Monkey {
-        pub fn new<Op, T>(
+        pub fn new<Op>(
             items: Vec<Item>,
             operation: Op,
-            test: T,
+            // test: T,
+            divisor: Item,
             on_true: usize,
             on_false: usize,
         ) -> Self
         where
             Op: Fn(Item) -> Item + 'static,
-            T: Fn(Item) -> bool + 'static,
         {
             Self {
                 items,
                 inspections: 0,
                 operation: Box::new(operation),
-                test: Box::new(test),
+                divisor,
+                // test: Box::new(test),
                 on_true,
                 on_false,
+            }
+        }
+
+        /// Decide where to throw the given item to
+        pub fn throw_to(&self, item: &Item) -> usize {
+            match item.rem(&self.divisor).lt(&1) {
+                true => self.on_true,
+                false => self.on_false,
             }
         }
     }
 }
 
-pub fn day11p1(input: &str) -> u64 {
-    let mut monkeys = input
+fn parse_monkeys(input: &str) -> Vec<Monkey> {
+    input
         .split("\n\n")
         .map(|s| {
             let mut lines = s.lines().skip(1);
@@ -75,19 +87,19 @@ pub fn day11p1(input: &str) -> u64 {
                 .collect::<Vec<_>>()
                 .as_slice()
             {
-                ["new", "=", "old", "*", "old"] => Box::new(move |i: Item| i * i),
+                ["new", "=", "old", "*", "old"] => Box::new(move |i: Item| i.pow(2)),
                 ["new", "=", "old", "*", n] => {
-                    let n = n.parse::<u64>().expect("n to be a number");
+                    let n = n.parse::<Item>().expect("n to be a number");
                     Box::new(move |i: Item| i * n)
                 }
                 ["new", "=", "old", "+", n] => {
-                    let n = n.parse::<u64>().expect("n to be a number");
+                    let n = n.parse::<Item>().expect("n to be a number");
                     Box::new(move |i: Item| i + n)
                 }
                 op => panic!("Unknown operation: {op:?}"),
             };
 
-            let test = match lines
+            let divisor = match lines
                 .next()
                 .expect("Test")
                 .split(": ")
@@ -97,10 +109,7 @@ pub fn day11p1(input: &str) -> u64 {
                 .collect::<Vec<_>>()
                 .as_slice()
             {
-                ["divisible", "by", n] => {
-                    let n = n.parse::<u64>().expect("n to be a number");
-                    move |i| (i % n) == 0
-                }
+                ["divisible", "by", n] => n.parse::<Item>().expect("n to be a number"),
                 t => panic!("Unknown test: {t:?}"),
             };
 
@@ -121,21 +130,23 @@ pub fn day11p1(input: &str) -> u64 {
                 .parse()
                 .unwrap();
 
-            Monkey::new(items, operation, test, on_true, on_false)
+            Monkey::new(items, operation, divisor, on_true, on_false)
         })
-        .collect::<Vec<_>>();
+        .collect::<Vec<_>>()
+}
+
+pub fn day11p1(input: &str) -> u64 {
+    let mut monkeys = parse_monkeys(input);
     let num_monkeys = monkeys.len();
 
     for _ in 0..20 {
-        for mi in 0..num_monkeys {
-            while let Some(item) = monkeys[mi].items.pop() {
-                let m = &mut monkeys[mi];
+        for i in 0..num_monkeys {
+            while let Some(item) = monkeys[i].items.pop() {
+                let m = &mut monkeys[i];
+
                 m.inspections += 1;
-                let item = (m.operation)(item) / 3;
-                let throw_to = match (m.test)(item) {
-                    true => m.on_true,
-                    false => m.on_false,
-                };
+                let item = (m.operation)(item).div(&3);
+                let throw_to = m.throw_to(&item);
                 monkeys[throw_to].items.push(item);
             }
         }
@@ -147,8 +158,32 @@ pub fn day11p1(input: &str) -> u64 {
     business[0] * business[1]
 }
 
-pub fn day11p2(_input: &str) -> u64 {
-    0
+pub fn day11p2(input: &str) -> u64 {
+    let mut monkeys = parse_monkeys(input);
+    let num_monkeys = monkeys.len();
+    let divisor_product = monkeys.iter().fold(1, |acc, m| acc * m.divisor);
+
+    for r in 0..10_000 {
+        if r % 1000 == 0 {
+            println!("After {r}: {monkeys:?}");
+        }
+
+        for i in 0..num_monkeys {
+            while let Some(item) = monkeys[i].items.pop() {
+                let m = &mut monkeys[i];
+
+                m.inspections += 1;
+                let item = (m.operation)(item) % divisor_product;
+                let throw_to = m.throw_to(&item);
+                monkeys[throw_to].items.push(item);
+            }
+        }
+    }
+
+    let mut business = monkeys.iter().map(|m| m.inspections).collect::<Vec<_>>();
+    business.sort_unstable_by_key(|i| Reverse(*i));
+
+    business[0] * business[1]
 }
 
 #[cfg(test)]
@@ -162,7 +197,7 @@ mod tests {
 
     #[test]
     fn part2_examples() {
-        assert_eq!(0, day11p2(INPUT));
+        assert_eq!(2713310158, day11p2(INPUT));
     }
 
     const INPUT: &str = "Monkey 0:
