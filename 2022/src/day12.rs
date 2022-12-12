@@ -44,11 +44,11 @@ mod hill {
                         b'S' => {
                             start = (x, y);
                             n.height = b'a';
-                            n.distance = Some(0);
                         }
                         b'E' => {
                             dest = (x, y);
                             n.height = b'z';
+                            n.distance = Some(0);
                         }
                         _ => {}
                     }
@@ -63,7 +63,7 @@ mod hill {
         pub fn calculate_steps(&mut self) {
             let mut visited = HashSet::with_capacity(self.map.len());
             let mut queue = VecDeque::new();
-            queue.push_back(self.start);
+            queue.push_back(self.dest);
 
             while let Some(coords) = queue.pop_front() {
                 if visited.contains(&coords) {
@@ -84,7 +84,7 @@ mod hill {
 
                 for (nx, ny) in neighbors {
                     if let Some(mut neighbor) = self.map.get_mut(ny).and_then(|r| r.get_mut(nx)) {
-                        if neighbor.height <= current.height + 1 {
+                        if neighbor.height >= current.height - 1 {
                             let neighbor_distance = neighbor.distance.unwrap_or(i32::MAX);
                             if neighbor_distance > distance {
                                 neighbor.distance = Some(distance + 1);
@@ -99,8 +99,21 @@ mod hill {
         }
 
         pub fn shortest_s_to_e(&self) -> i32 {
-            let (x, y) = self.dest;
+            let (x, y) = self.start;
             self.map[y][x].distance.unwrap()
+        }
+
+        pub fn shortest_a_to_e(&self) -> i32 {
+            self.map
+                .iter()
+                .flat_map(|r| {
+                    r.iter().filter_map(|n| match n.height {
+                        b'a' => n.distance,
+                        _ => None,
+                    })
+                })
+                .min()
+                .unwrap()
         }
     }
 }
@@ -114,7 +127,7 @@ pub fn day12p1(input: &str) -> i32 {
 pub fn day12p2(input: &str) -> i32 {
     let mut p: Puzzle = input.into();
     p.calculate_steps();
-    p.shortest_s_to_e()
+    p.shortest_a_to_e()
 }
 
 #[cfg(test)]
