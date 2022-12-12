@@ -1,9 +1,25 @@
 use hill::*;
 
 mod hill {
-    use std::collections::{HashMap, HashSet, VecDeque};
+    use std::collections::{HashSet, VecDeque};
 
-    pub type Map = Vec<Vec<u8>>;
+    pub type Map = Vec<Vec<Node>>;
+
+    /// A square on the map
+    #[derive(Debug, Clone, Copy)]
+    pub struct Node {
+        height: u8,
+        distance: Option<i32>,
+    }
+
+    impl From<char> for Node {
+        fn from(c: char) -> Self {
+            Self {
+                height: c as u8,
+                distance: None,
+            }
+        }
+    }
 
     #[derive(Debug)]
     pub struct Puzzle {
@@ -19,19 +35,20 @@ mod hill {
 
             let mut map: Map = s
                 .lines()
-                .map(|line| line.chars().map(|c| c as u8).collect())
+                .map(|line| line.chars().map(Node::from).collect())
                 .collect();
 
             for (y, row) in map.iter_mut().enumerate() {
-                for (x, c) in row.iter_mut().enumerate() {
-                    match c {
+                for (x, n) in row.iter_mut().enumerate() {
+                    match n.height {
                         b'S' => {
                             start = (x, y);
-                            *c = b'a';
+                            n.height = b'a';
+                            n.distance = Some(0);
                         }
                         b'E' => {
                             dest = (x, y);
-                            *c = b'z';
+                            n.height = b'z';
                         }
                         _ => {}
                     }
@@ -43,10 +60,8 @@ mod hill {
     }
 
     impl Puzzle {
-        pub fn calculate_steps(&self) -> i32 {
+        pub fn calculate_steps(&mut self) {
             let mut visited = HashSet::with_capacity(self.map.len());
-            let mut distances = HashMap::with_capacity(self.map.len());
-            distances.insert(self.start, 0);
             let mut queue = VecDeque::new();
             queue.push_back(self.start);
 
@@ -54,9 +69,9 @@ mod hill {
                 if visited.contains(&coords) {
                     continue;
                 }
-                let distance = *distances.get(&coords).unwrap();
                 let (x, y) = coords;
-                let current_height = self.map[y][x];
+                let current = self.map[y][x];
+                let distance = current.distance.unwrap();
 
                 // inspect neighbors
                 let mut neighbors = HashSet::from([(x + 1, y), (x, y + 1)]);
@@ -67,40 +82,39 @@ mod hill {
                     neighbors.insert((x, y - 1));
                 }
 
-                neighbors
-                    .iter()
-                    // select the ones that exist
-                    .for_each(|&neighbor_coords| {
-                        let (nx, ny) = neighbor_coords;
-                        if let Some(neighbor_height) = self.map.get(ny).and_then(|r| r.get(nx)) {
-                            if *neighbor_height <= current_height + 1 {
-                                let neighbor_distance =
-                                    distances.entry(neighbor_coords).or_insert(i32::MAX);
-                                if *neighbor_distance > distance {
-                                    *neighbor_distance = distance + 1;
-                                }
-                                queue.push_back(neighbor_coords);
+                for (nx, ny) in neighbors {
+                    if let Some(mut neighbor) = self.map.get_mut(ny).and_then(|r| r.get_mut(nx)) {
+                        if neighbor.height <= current.height + 1 {
+                            let neighbor_distance = neighbor.distance.unwrap_or(i32::MAX);
+                            if neighbor_distance > distance {
+                                neighbor.distance = Some(distance + 1);
                             }
-                        };
-                    });
+                            queue.push_back((nx, ny));
+                        }
+                    };
+                }
 
                 visited.insert(coords);
             }
+        }
 
-            *distances
-                .get(&self.dest)
-                .expect("get distance value for DEST")
+        pub fn shortest_s_to_e(&self) -> i32 {
+            let (x, y) = self.dest;
+            self.map[y][x].distance.unwrap()
         }
     }
 }
 
 pub fn day12p1(input: &str) -> i32 {
-    let p: Puzzle = input.into();
-    p.calculate_steps()
+    let mut p: Puzzle = input.into();
+    p.calculate_steps();
+    p.shortest_s_to_e()
 }
 
-pub fn day12p2(_input: &str) -> usize {
-    0
+pub fn day12p2(input: &str) -> i32 {
+    let mut p: Puzzle = input.into();
+    p.calculate_steps();
+    p.shortest_s_to_e()
 }
 
 #[cfg(test)]
@@ -114,7 +128,7 @@ mod tests {
 
     #[test]
     fn part2_examples() {
-        assert_eq!(0, day12p2(INPUT));
+        assert_eq!(29, day12p2(INPUT));
     }
 
     const INPUT: &str = "Sabqponm
