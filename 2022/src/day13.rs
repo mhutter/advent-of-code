@@ -1,3 +1,5 @@
+use std::ops::Not;
+
 use distress::*;
 
 mod distress {
@@ -19,7 +21,7 @@ mod distress {
     #[derive(Debug)]
     pub struct Pair(Packet, Packet);
 
-    #[derive(Debug, PartialEq, Eq)]
+    #[derive(Debug, PartialEq, Eq, Clone)]
     pub enum Packet {
         Num(u64),
         List(List),
@@ -39,6 +41,24 @@ mod distress {
                 separated_list0(tag(","), Packet::parse),
                 char(']'),
             )(i)
+        }
+    }
+
+    impl std::fmt::Display for Packet {
+        fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+            match self {
+                Self::Num(n) => write!(f, "{n}"),
+                Self::List(l) => {
+                    write!(
+                        f,
+                        "[{}]",
+                        l.iter()
+                            .map(|e| e.to_string())
+                            .collect::<Vec<_>>()
+                            .join(", ")
+                    )
+                }
+            }
         }
     }
 
@@ -100,16 +120,31 @@ pub fn day13p1(input: &str) -> usize {
         .split("\n\n")
         .map(|i| Pair::parse(i).unwrap().1)
         .enumerate()
-        .filter_map(|(i, pair)| {
-            let sorted = pair.is_sorted().then_some(i + 1);
-            println!("{i}: {:?}", sorted);
-            sorted
-        })
+        .filter_map(|(i, pair)| pair.is_sorted().then_some(i + 1))
         .sum()
 }
 
-pub fn day13p2(_input: &str) -> usize {
-    0
+pub fn day13p2(input: &str) -> usize {
+    let divider_packets = vec![
+        Packet::parse("[[2]]").unwrap().1,
+        Packet::parse("[[6]]").unwrap().1,
+    ];
+    let mut data = input
+        .lines()
+        .filter_map(|line| {
+            line.is_empty()
+                .not()
+                .then(|| Packet::parse(line).unwrap().1)
+        })
+        .collect::<Vec<_>>();
+
+    data.append(&mut divider_packets.clone());
+    data.sort();
+
+    divider_packets
+        .iter()
+        .map(|p| data.iter().position(|i| i == p).unwrap() + 1)
+        .product()
 }
 
 #[cfg(test)]
@@ -123,7 +158,7 @@ mod tests {
 
     #[test]
     fn part2_examples() {
-        assert_eq!(0, day13p2(INPUT));
+        assert_eq!(140, day13p2(INPUT));
     }
 
     const INPUT: &str = "[1,1,3,1,1]
