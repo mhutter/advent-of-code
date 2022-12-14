@@ -1,7 +1,7 @@
 use regolith::*;
 
 mod regolith {
-    use std::collections::HashMap;
+    use std::{collections::HashMap, fmt::Write};
 
     const DOWN: Coord = Coord { x: 0, y: 1 };
     const DOWN_LEFT: Coord = Coord { x: -1, y: 1 };
@@ -16,10 +16,11 @@ mod regolith {
         min_x: CoordAxis,
         max_x: CoordAxis,
         max_y: CoordAxis,
+        floor: CoordAxis,
     }
 
     impl Grid {
-        pub fn place_sand(&mut self) -> bool {
+        pub fn place_sand_p1(&mut self) -> bool {
             let mut sand = self.sand_source;
 
             while self.move_sand(&mut sand) {
@@ -32,7 +33,24 @@ mod regolith {
             true
         }
 
+        pub fn place_sand_p2(&mut self) -> bool {
+            if self.map.get(&self.sand_source).is_some() {
+                return false;
+            }
+
+            let mut sand = self.sand_source;
+
+            while self.move_sand(&mut sand) {}
+
+            self.map.insert(sand, Material::Sand);
+            true
+        }
+
         fn move_sand(&self, sand: &mut Coord) -> bool {
+            if sand.y + 1 == self.floor {
+                return false;
+            }
+
             [DOWN, DOWN_LEFT, DOWN_RIGHT].into_iter().any(|dir| {
                 if self.map.get(&(*sand + dir)).is_none() {
                     *sand += dir;
@@ -46,31 +64,36 @@ mod regolith {
 
     impl std::fmt::Debug for Grid {
         fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+            const CONTEXT: isize = 3;
+
             writeln!(
                 f,
                 "Grid<min_x={} max_x={} max_y={}>",
                 self.min_x, self.max_x, self.max_y,
             )?;
 
-            for y in 0..=self.max_y {
-                let mut line = String::with_capacity((self.max_x - self.min_x + 1) as usize);
-
-                for x in self.min_x..=self.max_x {
+            for y in 0..=self.floor {
+                for x in (self.min_x - CONTEXT)..=(self.max_x + CONTEXT) {
                     let c = Coord::from((x, y));
 
                     if c == self.sand_source {
-                        line.push('+');
+                        f.write_char('+')?;
                         continue;
                     }
 
-                    line.push(match self.map.get(&c) {
+                    if c.y == self.floor {
+                        f.write_char('#')?;
+                        continue;
+                    }
+
+                    f.write_char(match self.map.get(&c) {
                         Some(Material::Rock) => '#',
                         Some(Material::Sand) => 'o',
                         None => '.',
-                    });
+                    })?;
                 }
 
-                writeln!(f, "{line}")?;
+                f.write_char('\n')?;
             }
             Ok(())
         }
@@ -104,6 +127,7 @@ mod regolith {
                 min_x,
                 max_x,
                 max_y,
+                floor: max_y + 2,
             }
         }
     }
@@ -201,7 +225,7 @@ pub fn day14p1(input: &str) -> usize {
     let mut grid = Grid::from(input);
 
     let mut n = 0;
-    while grid.place_sand() {
+    while grid.place_sand_p1() {
         n += 1;
     }
 
@@ -210,8 +234,17 @@ pub fn day14p1(input: &str) -> usize {
     n
 }
 
-pub fn day14p2(_input: &str) -> usize {
-    0
+pub fn day14p2(input: &str) -> usize {
+    let mut grid = Grid::from(input);
+
+    let mut n = 0;
+    while grid.place_sand_p2() {
+        n += 1;
+    }
+
+    println!("Final layout after {n} steps: {grid:?}");
+
+    n
 }
 
 #[cfg(test)]
@@ -225,7 +258,7 @@ mod tests {
 
     #[test]
     fn part2_examples() {
-        assert_eq!(0, day14p2(INPUT));
+        assert_eq!(93, day14p2(INPUT));
     }
 
     const INPUT: &str = "498,4 -> 498,6 -> 496,6
