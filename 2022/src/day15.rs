@@ -6,13 +6,13 @@ mod bez {
     use std::fmt::Write;
 
     /// The type for the x and y values of the coordinate system
-    pub type N = isize;
+    pub type N = i64;
 
     #[derive(Debug)]
     pub struct Sensor {
         pub pos: Coords,
         pub beacon: Coords,
-        pub range: usize,
+        pub range: N,
     }
 
     impl Sensor {
@@ -23,6 +23,10 @@ mod bez {
             let range = pos.distance_to(&beacon);
 
             Self { pos, beacon, range }
+        }
+
+        pub fn within_range(&self, other: &Coords) -> bool {
+            self.range >= self.pos.distance_to(other)
         }
     }
 
@@ -64,8 +68,10 @@ mod bez {
             Self::new(x, y)
         }
 
-        pub fn distance_to(&self, other: &Self) -> usize {
-            self.x.abs_diff(other.x) + self.y.abs_diff(other.y)
+        pub fn distance_to(&self, other: &Self) -> N {
+            (self.x.abs_diff(other.x) + self.y.abs_diff(other.y))
+                .try_into()
+                .expect("distance within range of N")
         }
     }
 
@@ -109,16 +115,16 @@ mod bez {
 }
 
 pub fn day15p1(input: &str, y: N) -> usize {
-    let mut row: HashMap<isize, GridField> = HashMap::new();
+    let mut row: HashMap<N, GridField> = HashMap::new();
 
     for s in input.lines().map(Sensor::parse) {
-        let distance_to_y = s.pos.y.abs_diff(y);
+        let distance_to_y: N = s.pos.y.abs_diff(y).try_into().unwrap();
 
         if distance_to_y > s.range {
             continue;
         }
 
-        let dx = (s.range - distance_to_y) as isize;
+        let dx = s.range - distance_to_y;
 
         for x in (s.pos.x - dx)..=(s.pos.x + dx) {
             let curr = Coords::new(x, y);
@@ -143,8 +149,36 @@ pub fn day15p1(input: &str, y: N) -> usize {
         .count()
 }
 
-pub fn day15p2(_input: &str) -> usize {
-    0
+pub fn day15p2(input: &str, max: N) -> N {
+    // within the search space: 0<=x<=max && 0<=y<=max
+    // find a point that is not within range of any sensor.
+    let sensors = input.lines().map(Sensor::parse).collect::<Vec<_>>();
+    let beacon = find_beacon(sensors, max);
+
+    beacon.x * 4000000 + beacon.y
+}
+
+fn find_beacon(sensors: Vec<Sensor>, max: N) -> Coords {
+    let mut y = 0;
+    while y <= max {
+        let mut x = 0;
+        while x <= max {
+            let curr = Coords::new(x, y);
+
+            if let Some(sensor) = sensors.iter().find(|s| s.within_range(&curr)) {
+                // determine how much we can skip ahead
+                // we can skip to X = (sensor.x + range - dy)
+                let dy: N = sensor.pos.y.abs_diff(y).try_into().unwrap();
+                x = sensor.pos.x + sensor.range - dy;
+            } else {
+                return curr;
+            }
+            x += 1;
+        }
+        y += 1;
+    }
+
+    panic!("Did not find beacon :scream:");
 }
 
 #[cfg(test)]
@@ -158,7 +192,7 @@ mod tests {
 
     #[test]
     fn part2_examples() {
-        assert_eq!(0, day15p2(INPUT));
+        assert_eq!(56000011, day15p2(INPUT, 20));
     }
 
     const INPUT: &str = "Sensor at x=2, y=18: closest beacon is at x=-2, y=15
