@@ -22,6 +22,7 @@ name = "advent-of-code-2022"
 version = "0.1.0"
 dependencies = [
  "color-eyre",
+ "common",
  "criterion",
  "env_logger",
  "log",
@@ -179,6 +180,10 @@ dependencies = [
  "tracing-core",
  "tracing-error",
 ]
+
+[[package]]
+name = "common"
+version = "0.1.0"
 
 [[package]]
 name = "criterion"

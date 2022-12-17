@@ -1,4 +1,7 @@
 pub mod generate;
+pub mod grid;
+
+pub use grid::*;
 
 pub trait ExpectPrefixExt {
     fn expect_prefix(self, prefix: &str) -> Self;
