@@ -4,7 +4,7 @@ use std::{
 };
 
 /// A point on a 2D coordinate system
-#[derive(Debug, Hash, PartialEq, Eq, Clone, Copy)]
+#[derive(Debug, Hash, PartialEq, Eq, Clone, Copy, PartialOrd, Ord)]
 pub struct GridCoord<T> {
     pub x: T,
     pub y: T,
