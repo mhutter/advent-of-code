@@ -1,12 +1,12 @@
 use std::str::FromStr;
 
-const MAX_RED: u16 = 12;
-const MAX_GREEN: u16 = 13;
-const MAX_BLUE: u16 = 14;
+const MAX_RED: u32 = 12;
+const MAX_GREEN: u32 = 13;
+const MAX_BLUE: u32 = 14;
 
 #[derive(Debug)]
 struct Game {
-    id: u16,
+    id: u32,
     sets: Vec<Set>,
 }
 
@@ -15,6 +15,16 @@ impl Game {
         self.sets
             .iter()
             .all(|set| set.red <= MAX_RED && set.green <= MAX_GREEN && set.blue <= MAX_BLUE)
+    }
+
+    fn minimal_set(&self) -> Set {
+        let mut min = Set::default();
+        for s in &self.sets {
+            min.red = min.red.max(s.red);
+            min.green = min.green.max(s.green);
+            min.blue = min.blue.max(s.blue);
+        }
+        min
     }
 }
 
@@ -42,9 +52,15 @@ impl FromStr for Game {
 
 #[derive(Debug, Default, Clone, Copy)]
 struct Set {
-    red: u16,
-    green: u16,
-    blue: u16,
+    red: u32,
+    green: u32,
+    blue: u32,
+}
+
+impl Set {
+    fn power(&self) -> u32 {
+        self.red * self.green * self.blue
+    }
 }
 
 impl FromStr for Set {
@@ -56,7 +72,7 @@ impl FromStr for Set {
 
         for (n, color) in s.split(", ").map(|p| {
             let (n, color) = p.split_once(' ').expect("N COLOR");
-            (n.parse::<u16>().expect("number of cubes"), color)
+            (n.parse::<u32>().expect("number of cubes"), color)
         }) {
             match color {
                 "red" => set.red += n,
@@ -88,7 +104,7 @@ impl core::ops::Add for Set {
     }
 }
 
-pub fn day02p1(input: &str) -> u16 {
+pub fn day02p1(input: &str) -> u32 {
     input
         .lines()
         .filter_map(|line| {
@@ -100,8 +116,15 @@ pub fn day02p1(input: &str) -> u16 {
         .sum()
 }
 
-pub fn day02p2(_input: &str) -> u16 {
-    0
+pub fn day02p2(input: &str) -> u32 {
+    input
+        .lines()
+        .map(|line| {
+            // parse input
+            let game = Game::from_str(line).expect("parse game");
+            game.minimal_set().power()
+        })
+        .sum()
 }
 
 #[cfg(test)]
@@ -115,7 +138,7 @@ mod tests {
 
     #[test]
     fn part2_examples() {
-        assert_eq!(0, day02p2(INPUT));
+        assert_eq!(2286, day02p2(INPUT));
     }
 
     const INPUT: &str = "Game 1: 3 blue, 4 red; 1 red, 2 green, 6 blue; 2 green
