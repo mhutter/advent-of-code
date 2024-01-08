@@ -1,8 +1,8 @@
-pub fn day11p1(_input: &str) -> usize {
+pub fn day11p1(_input: &str) -> u32 {
     0
 }
 
-pub fn day11p2(_input: &str) -> usize {
+pub fn day11p2(_input: &str) -> u32 {
     0
 }
 
