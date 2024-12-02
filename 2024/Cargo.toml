@@ -1,0 +1,18 @@
+[package]
+name = "advent-of-code-2024"
+version = "0.1.0"
+edition = "2021"
+authors = ["Manuel Hutter (https://github.com/mhutter)"]
+license = "MIT"
+repository = "https://github.com/mhutter/advent-of-code"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+common = { path = "../common" }
+
+[profile.release]
+strip = true
+lto = true
+codegen-units = 1
+panic = "abort"
