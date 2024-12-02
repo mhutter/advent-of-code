@@ -15,24 +15,44 @@ impl FromStr for Report {
 }
 
 impl Report {
-    fn is_safe(&self) -> bool {
-        let dir = if self.0[0] < self.0[1] {
-            Dir::Inc
-        } else {
-            Dir::Dec
-        };
-        for i in 0..(self.0.len() - 1) {
-            let (l, r) = (self.0[i], self.0[i + 1]);
-
-            if !(1..=3).contains(&l.abs_diff(r))
-                || (dir == Dir::Inc && l > r)
-                || (dir == Dir::Dec && l < r)
-            {
-                return false;
-            }
-        }
-        true
+    pub fn is_safe(&self) -> bool {
+        find_unsafe(&self.0).is_none()
     }
+
+    pub fn is_safe_dampened(&self) -> bool {
+        if find_unsafe(&self.0).is_none() {
+            return true;
+        }
+
+        for i in 0..(self.0.len()) {
+            let mut dampened_report = self.0.clone();
+            dampened_report.remove(i);
+            if find_unsafe(&dampened_report).is_none() {
+                return true;
+            };
+        }
+        false
+    }
+}
+
+fn find_unsafe(report: &[u8]) -> Option<usize> {
+    let dir = if report[0] < report[1] {
+        Dir::Inc
+    } else {
+        Dir::Dec
+    };
+    for i in 0..(report.len() - 1) {
+        let (l, r) = (report[i], report[i + 1]);
+
+        if !(1..=3).contains(&l.abs_diff(r))
+            || (dir == Dir::Inc && l > r)
+            || (dir == Dir::Dec && l < r)
+        {
+            return Some(i);
+        }
+    }
+
+    None
 }
 
 #[derive(PartialEq, Eq)]
@@ -50,8 +70,18 @@ pub fn day02p1(input: &str) -> usize {
     reports.into_iter().filter(|r| r.is_safe()).count()
 }
 
-pub fn day02p2(_input: &str) -> u32 {
-    0
+pub fn day02p2(input: &str) -> usize {
+    let reports: Vec<_> = input
+        .lines()
+        .map(|line| Report::from_str(line).unwrap())
+        .collect();
+
+    // since we want to mutate the reports; we can't just `filter` them since this would mean we'd
+    // reuse them later in the iterator.
+    reports
+        .into_iter()
+        .filter_map(|r| r.is_safe_dampened().then_some(()))
+        .count()
 }
 
 #[cfg(test)]
@@ -65,7 +95,7 @@ mod tests {
 
     #[test]
     fn part2_examples() {
-        assert_eq!(0, day02p2(INPUT));
+        assert_eq!(4, day02p2(INPUT));
     }
 
     const INPUT: &str = "7 6 4 2 1
