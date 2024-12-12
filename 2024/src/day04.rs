@@ -69,8 +69,30 @@ pub fn day04p1(input: &str) -> u32 {
     sum
 }
 
-pub fn day04p2(_input: &str) -> u32 {
-    0
+pub fn day04p2(input: &str) -> u32 {
+    let input: Vec<Vec<char>> = input.lines().map(|l| l.chars().collect()).collect();
+    let rows = input.len();
+    let cols = input[0].len();
+    let mut sum = 0;
+
+    for row in 1..(rows - 1) {
+        for col in 1..(cols - 1) {
+            if input[row][col] != 'A' {
+                continue;
+            }
+
+            let tlbr = (input[row - 1][col - 1], input[row + 1][col + 1]);
+            let bltr = (input[row + 1][col - 1], input[row - 1][col + 1]);
+
+            if (tlbr == ('M', 'S') || tlbr == ('S', 'M'))
+                && (bltr == ('M', 'S') || bltr == ('S', 'M'))
+            {
+                sum += 1;
+            }
+        }
+    }
+
+    sum
 }
 
 #[cfg(test)]
@@ -84,7 +106,7 @@ mod tests {
 
     #[test]
     fn part2_examples() {
-        assert_eq!(0, day04p2(INPUT));
+        assert_eq!(9, day04p2(INPUT));
     }
 
     const INPUT: &str = "MMMSXXMASM
